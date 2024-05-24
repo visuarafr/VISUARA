@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Réservation Photo Immo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            emailjs.init("S_JZqwh4VhhkKPGcp"); // Your EmailJS public key
+        })();
+    </script>
+</head>
+<body>
+    <div class="container" id="login-container">
+        <h1>Connexion</h1>
+        <form id="loginForm">
+            <label for="agency">Nom de l'agence:</label>
+            <input type="text" id="agency" name="agency" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Mot de passe:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Se connecter</button>
+        </form>
+        <div id="login-error" style="display:none;">
+            Email ou mot de passe incorrect.
+        </div>
+    </div>
+
+    <div class="container" id="reservation-container" style="display:none;">
+        <h1>Bonjour, <span id="user-name"></span></h1>
+        <form id="reservationForm">
+            <label for="region">Région:</label>
+            <select id="region" name="region" required>
+                <option value="">Sélectionner une région</option>
+                <option value="Auvergne-Rhône-Alpes">Auvergne-Rhône-Alpes</option>
+                <option value="Bourgogne-Franche-Comté">Bourgogne-Franche-Comté</option>
+                <option value="Bretagne">Bretagne</option>
+                <option value="Centre-Val de Loire">Centre-Val de Loire</option>
+                <option value="Corse">Corse</option>
+                <option value="Grand Est">Grand Est</option>
+                <option value="Hauts-de-France">Hauts-de-France</option>
+                <option value="Île-de-France">Île-de-France</option>
+                <option value="Normandie">Normandie</option>
+                <option value="Nouvelle-Aquitaine">Nouvelle-Aquitaine</option>
+                <option value="Occitanie">Occitanie</option>
+                <option value="Pays de la Loire">Pays de la Loire</option>
+                <option value="Provence-Alpes-Côte d'Azur">Provence-Alpes-Côte d'Azur</option>
+            </select>
+
+            <label for="city">Ville:</label>
+            <input type="text" id="city" name="city" placeholder="Tapez pour rechercher..." required>
+
+            <label for="address">Adresse du bien:</label>
+            <input type="text" id="address" name="address" placeholder="Adresse du bien" required>
+
+            <label for="datetime">Date et heure souhaitées:</label>
+            <input type="datetime-local" id="datetime" name="datetime" required>
+
+            <label for="shooting-type">Type de shooting:</label>
+            <select id="shooting-type" name="shooting-type" required>
+                <option value="">Sélectionner un type de shooting</option>
+                <option value="signature">Signature (12 photos)</option>
+                <option value="heritage">Héritage (20 photos)</option>
+                <option value="excellence">Excellence (30 photos)</option>
+                <option value="prestige">Prestige (40 photos)</option>
+                <option value="signature_plus">Signature Plus (12 photos, 1 vidéo de 45 sec)</option>
+                <option value="heritage_plus">Héritage Plus (20 photos, 1 vidéo de 1 min)</option>
+                <option value="excellence_plus">Excellence Plus (30 photos, 1 vidéo de 1 min 30)</option>
+                <option value="prestige_plus">Prestige Plus (40 photos, 1 vidéo de 2 min)</option>
+            </select>
+
+            <div id="shooting-details" style="display:none;">
+                <p id="shooting-description"></p>
+            </div>
+
+            <button type="submit">Envoyer</button>
+        </form>
+        <div id="confirmation" style="display:none;">
+            <h2>Merci pour votre demande de réservation!</h2>
+            <p>Nous vous contacterons bientôt pour confirmer les détails.</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBm6MTj3LV2jcRP7DlDCKCw4xr2CFUs5D0",
+            authDomain: "visuara-55dde.firebaseapp.com",
+            projectId: "visuara-55dde",
+            storageBucket: "visuara-55dde.appspot.com",
+            messagingSenderId: "498231883101",
+            appId: "1:498231883101:web:767ae721167db03899a4b4",
+            measurementId: "G-C1ES815KPQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        const shootingDescriptions = {
+            signature: "Signature: 12 photos",
+            heritage: "Héritage: 20 photos",
+            excellence: "Excellence: 30 photos",
+            prestige: "Prestige: 40 photos",
+            signature_plus: "Signature Plus: 12 photos, 1 vidéo de 45 sec",
+            heritage_plus: "Héritage Plus: 20 photos, 1 vidéo de 1 min",
+            excellence_plus: "Excellence Plus: 30 photos, 1 vidéo de 1 min 30",
+            prestige_plus: "Prestige Plus: 40 photos, 1 vidéo de 2 min"
+        };
+
+        let loggedInEmail = '';
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const agency = document.getElementById('agency').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    loggedInEmail = email;
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('reservation-container').style.display = 'block';
+                    document.getElementById('user-name').textContent = agency;
+                })
+                .catch((error) => {
+                    document.getElementById('login-error').style.display = 'block';
+                });
+        });
+
+        document.getElementById('shooting-type').addEventListener('change', function(e) {
+            const value = e.target.value;
+            if (value) {
+                document.getElementById('shooting-details').style.display = 'block';
+                document.getElementById('shooting-description').textContent = shootingDescriptions[value];
+            } else {
+                document.getElementById('shooting-details').style.display = 'none';
+                document.getElementById('shooting-description').textContent = '';
+            }
+        });
+
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const agency = document.getElementById('user-name').textContent;
+            const formData = {
+                region: document.getElementById('region').value,
+                city: document.getElementById('city').value,
+                address: document.getElementById('address').value,
+                datetime: document.getElementById('datetime').value,
+                shootingType: document.getElementById('shooting-type').value
+            };
+
+            const apiKey = 'be54e3f7ff2c69550f1ac28b202b7458';
+            const apiToken = 'ATTAc64ad16d6a5dfa2af0d106b42cb1c9ffad6f80ac4c1e3fce4bb03801473eff247EDCE65C';
+            const listId = '6650d37d314c2a17bbcf7090';
+
+            const trelloUrl = `https://api.trello.com/1/cards?key=${apiKey}&token=${apiToken}&idList=${listId}&name=${formData.shootingType} - ${agency}&desc=Region: ${formData.region}%0ACity: ${formData.city}%0AAddress: ${formData.address}%0ADatetime: ${formData.datetime}`;
+
+            fetch(trelloUrl, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Sending confirmation email using EmailJS
+                emailjs.send("service_oes8k5b", "template_6f8cima", {
+                    agency_name: agency,
+                    user_email: loggedInEmail,
+                    region: formData.region,
+                    city: formData.city,
+                    address: formData.address,
+                    datetime: formData.datetime,
+                    shooting_type: formData.shootingType
+                })
+                .then(() => {
+                    document.getElementById('reservationForm').style.display = 'none';
+                    document.getElementById('confirmation').style.display = 'block';
+                })
+                .catch((error) => {
+                    console.error('EmailJS Error:', error);
+                });
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
+
