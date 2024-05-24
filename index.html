@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Réservation Photo Immo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Demande de Réservation</h1>
+        <form id="reservationForm">
+            <label for="name">Nom du client:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Adresse email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="phone">Numéro de téléphone:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <label for="address">Adresse de la propriété:</label>
+            <input type="text" id="address" name="address" required>
+
+            <label for="datetime">Date et heure souhaitées:</label>
+            <input type="datetime-local" id="datetime" name="datetime" required>
+
+            <label for="package">Type de formule:</label>
+            <select id="package" name="package" required>
+                <option value="prestation">Prestation Unique</option>
+                <option value="abonnement">Abonnement</option>
+                <option value="illimité">Shooting Illimité</option>
+            </select>
+
+            <label for="notes">Remarques supplémentaires:</label>
+            <textarea id="notes" name="notes"></textarea>
+
+            <button type="submit">Envoyer</button>
+        </form>
+        <div id="confirmation" style="display:none;">
+            <h2>Merci pour votre demande de réservation!</h2>
+            <p>Nous vous contacterons bientôt pour confirmer les détails.</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
