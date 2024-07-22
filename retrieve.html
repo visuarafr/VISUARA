@@ -243,13 +243,14 @@
             reader.readAsDataURL(zipBlob);
             reader.onload = () => {
                 const base64data = reader.result.split(',')[1];
-                console.log("Sending email to:", userEmail);
-                emailjs.send('service_oes8k5b', 'template_6f8cima', {
+                const templateParams = {
                     to_email: userEmail,
                     subject: 'Vos fichiers de shooting',
                     message: 'Voici le lien pour télécharger vos fichiers de shooting :',
                     link: `data:application/zip;base64,${base64data}`
-                }).then(() => {
+                };
+                console.log("Template params:", templateParams);
+                emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams).then(() => {
                     alert('Email envoyé avec succès !');
                 }, (error) => {
                     console.error('Erreur lors de l\'envoi de l\'email :', error);
