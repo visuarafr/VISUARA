@@ -119,7 +119,7 @@
     <script type="module">
         import { auth, db, storage } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import { ref, listAll, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         let currentPage = 1;
@@ -167,17 +167,28 @@
             if (listRef.prefixes.length === 0) {
                 photosContainer.innerHTML = '<p class="no-shootings">Aucun dossier trouvé. Veuillez vérifier plus tard.</p>';
             } else {
-                listRef.prefixes.forEach((folderRef) => {
+                listRef.prefixes.forEach(async (folderRef) => {
+                    const folderName = await getFolderName(folderRef.name);
                     const folderDiv = document.createElement('div');
                     folderDiv.classList.add('list-group-item', 'folder');
                     folderDiv.setAttribute('onclick', `viewShooting('${folderRef.fullPath}')`);
                     folderDiv.innerHTML = `
                         <i class="fas fa-folder folder-icon"></i>
-                        <div class="folder-title">${folderRef.name}</div>
+                        <div class="folder-title">${folderName}</div>
                     `;
                     photosContainer.appendChild(folderDiv);
                 });
             }
+        }
+
+        async function getFolderName(folderId) {
+            const q = query(collection(db, "depot"), where("shootingId", "==", folderId));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const docData = querySnapshot.docs[0].data();
+                return `${docData.shootingType} - ${docData.city} - ${docData.date}`;
+            }
+            return folderId; // Fallback to folder ID if no matching document found
         }
 
         window.viewShooting = async function(folderPath) {
@@ -268,7 +279,6 @@
                     reply_to: "reply@example.com",
                     link: downloadURL
                 };
-                console.log("Template params:", templateParams);
 
                 emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
                     .then((response) => {
