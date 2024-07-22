@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="row w-100">
+            <div class="col-md-8 col-lg-6 offset-md-2 offset-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="card-title text-center">Faire une demande de shooting</h1>
+                        <div id="photo-credits" class="mb-4">
+                            Crédits de photos restants : <span id="credits-count">...</span><br>
+                            Shootings restants : <span id="shootings-count">...</span>
+                        </div>
+                        <form id="request-form" onsubmit="submitRequest(event)">
+                            <div class="form-group">
+                                <label for="shootingType">Type de Shooting</label>
+                                <select class="form-control" id="shootingType" onchange="updateShootingOptions()">
+                                    <option value="">Sélectionner un type</option>
+                                    <option value="photo">Photo</option>
+                                    <option value="video">Vidéo</option>
+                                    <option value="photo-video">Photo + Vidéo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="specificShooting">Shooting Spécifique</label>
+                                <select class="form-control" id="specificShooting" disabled></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="date">Date</label>
+                                <input type="date" class="form-control" id="date">
+                            </div>
+                            <div class="form-group">
+                                <label for="time">Heure</label>
+                                <input type="time" class="form-control" id="time">
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Adresse</label>
+                                <input type="text" class="form-control" id="address">
+                            </div>
+                            <div class="form-group">
+                                <label for="city">Ville</label>
+                                <input type="text" class="form-control" id="city">
+                            </div>
+                            <div class="form-group">
+                                <label for="additionalInfo">Informations supplémentaires</label>
+                                <textarea class="form-control" id="additionalInfo"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Envoyer</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <button class="btn btn-link" onclick="goBack()">Retour à la sélection</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="app.js"></script>
+    <script>
+        function updateShootingOptions() {
+            const shootingType = document.getElementById('shootingType').value;
+            const specificShooting = document.getElementById('specificShooting');
+            specificShooting.innerHTML = '';
+            specificShooting.disabled = false;
+
+            let options = [];
+            if (shootingType === 'photo') {
+                options = [
+                    { value: 'Signature', text: 'Signature (12 photos)' },
+                    { value: 'Héritage', text: 'Héritage (20 photos)' },
+                    { value: 'Excellence', text: 'Excellence (30 photos)' },
+                    { value: 'Prestige', text: 'Prestige (40 photos)' },
+                ];
+            } else if (shootingType === 'photo-video') {
+                options = [
+                    { value: 'Signature+', text: 'Signature (12 photos + vidéo 45 sec)' },
+                    { value: 'Héritage+', text: 'Héritage (20 photos + vidéo 1 min)' },
+                    { value: 'Excellence+', text: 'Excellence (30 photos + vidéo 1 min 30)' },
+                    { value: 'Prestige+', text: 'Prestige (40 photos + vidéo 2 min)' },
+                ];
+            }
+
+            options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.value;
+                opt.textContent = option.text;
+                specificShooting.appendChild(opt);
+            });
+        }
+
+        function goBack() {
+            window.location.replace('selection.html');
+        }
+    </script>
+</body>
+</html>
