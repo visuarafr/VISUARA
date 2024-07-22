@@ -7,10 +7,8 @@ let selectedClientId = null;
 let isAdmin = false;
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    console.log("DOMContentLoaded event fired");
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            console.log('User is signed in', user);
             isAdmin = await checkAdminPermissions(user);
             if (!isAdmin) {
                 alert('You do not have admin permissions.');
@@ -19,7 +17,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 loadClients();
             }
         } else {
-            console.log('No user is signed in');
             window.location.replace('index.html');
         }
     });
@@ -28,14 +25,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
 async function checkAdminPermissions(user) {
     const docRef = doc(db, "admins", user.uid);
     const docSnap = await getDoc(docRef);
-    console.log("Admin check: ", docSnap.exists());
     return docSnap.exists();
 }
 
 async function loadClients() {
     const searchResults = document.getElementById('search-results');
     if (!searchResults) {
-        console.error("Element with ID 'search-results' not found.");
         return;
     }
     const q = query(collection(db, "clients"), orderBy("companyName"));
@@ -62,7 +57,6 @@ window.searchCompany = async function() {
     const companyName = document.getElementById('search-company').value;
     const searchResults = document.getElementById('search-results');
     if (!searchResults) {
-        console.error("Element with ID 'search-results' not found.");
         return;
     }
     const q = query(collection(db, "clients"), where("companyName", "==", companyName));
@@ -120,23 +114,27 @@ window.assignShooting = async function() {
 
         const shootingId = newShootingRef.id;
 
-        // Log the storage reference path
-        console.log(`Uploading photos to path: shootings/${selectedClientId}/${shootingId}/`);
-        console.log(`User ID: ${selectedClientId}`);
-        console.log(`Shooting ID: ${shootingId}`);
+        // Store metadata in "depot" collection
+        await addDoc(collection(db, "depot"), {
+            userId: selectedClientId,
+            shootingId: shootingId,
+            date: shootingDate,
+            shootingType: shootingType,
+            address: shootingAddress,
+            city: shootingCity,
+            additionalInfo: shootingAdditionalInfo,
+            createdAt: new Date()
+        });
 
         // Upload photos
         for (let i = 0; i < shootingPhotos.length; i++) {
             const photo = shootingPhotos[i];
             const storageRef = ref(storage, `shootings/${selectedClientId}/${shootingId}/${photo.name}`);
-            console.log(`Uploading photo: ${photo.name}`);
             await uploadBytes(storageRef, photo);
         }
 
         alert('Shooting assigned successfully.');
     } catch (error) {
-        console.error("Error assigning shooting:", error);
-        console.log('Error details:', error);
         alert('Error assigning shooting: ' + error.message);
     }
 }
