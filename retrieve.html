@@ -117,13 +117,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script type="module">
-        import { auth, storage } from './firebase-config.js';
+        import { auth, db, storage } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
         import { ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         let currentPage = 1;
         const itemsPerPage = 5;
         let currentFolderPath = '';
+        let userEmail = '';
 
         window.logout = function() {
             signOut(auth).then(() => {
@@ -135,11 +137,22 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                await loadUserEmail(user);
                 loadShootings(user);
             } else {
                 window.location.replace('index.html');
             }
         });
+
+        async function loadUserEmail(user) {
+            const userDoc = await getDoc(doc(db, "clients", user.uid));
+            if (userDoc.exists()) {
+                userEmail = userDoc.data().email;
+            } else {
+                console.error("No user data found!");
+                alert('No user data found. Please contact support.');
+            }
+        }
 
         async function loadShootings(user) {
             const photosContainer = document.getElementById('photos-container');
@@ -230,7 +243,7 @@
             reader.onload = () => {
                 const base64data = reader.result.split(',')[1];
                 emailjs.send('service_oes8k5b', 'template_6f8cima', {
-                    to_email: user.email,
+                    to_email: userEmail,
                     subject: 'Vos fichiers de shooting',
                     message: 'Voici le lien pour télécharger vos fichiers de shooting :',
                     link: `data:application/zip;base64,${base64data}`
