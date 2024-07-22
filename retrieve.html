@@ -120,7 +120,7 @@
         import { auth, db, storage } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-        import { ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
+        import { ref, listAll, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         let currentPage = 1;
         const itemsPerPage = 5;
@@ -257,12 +257,16 @@
 
             await Promise.all(filePromises);
 
-            zip.generateAsync({ type: "base64" }).then(async (base64) => {
-                const link = `data:application/zip;base64,${base64}`;
+            zip.generateAsync({ type: "blob" }).then(async (blob) => {
+                const storageRef = ref(storage, `zips/${auth.currentUser.uid}/${new Date().getTime()}.zip`);
+                await uploadBytes(storageRef, blob);
+
+                const downloadURL = await getDownloadURL(storageRef);
+
                 const templateParams = {
                     user_email: userEmail,
                     reply_to: "reply@example.com",
-                    link: link
+                    link: downloadURL
                 };
                 console.log("Template params:", templateParams);
 
