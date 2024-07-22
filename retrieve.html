@@ -223,42 +223,6 @@
             document.querySelector('.breadcrumb-item:first-child').classList.add('active');
         }
 
-        window.emailAllFiles = async function() {
-            const user = auth.currentUser;
-            if (!user || !currentFolderPath) return;
-
-            const storageRef = ref(storage, currentFolderPath);
-            const listRef = await listAll(storageRef);
-            const zip = new JSZip();
-            
-            for (const itemRef of listRef.items) {
-                const url = await getDownloadURL(itemRef);
-                const response = await fetch(url);
-                const blob = await response.blob();
-                zip.file(itemRef.name, blob);
-            }
-
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            const reader = new FileReader();
-            reader.readAsDataURL(zipBlob);
-            reader.onload = () => {
-                const base64data = reader.result.split(',')[1];
-                const templateParams = {
-                    to_email: userEmail,
-                    subject: 'Vos fichiers de shooting',
-                    message: 'Voici le lien pour télécharger vos fichiers de shooting :',
-                    link: `data:application/zip;base64,${base64data}`
-                };
-                console.log("Template params:", templateParams);
-                emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams).then(() => {
-                    alert('Email envoyé avec succès !');
-                }, (error) => {
-                    console.error('Erreur lors de l\'envoi de l\'email :', error);
-                    alert('Erreur lors de l\'envoi de l\'email.');
-                });
-            };
-        }
-
         window.previousPage = function() {
             if (currentPage > 1) {
                 currentPage--;
@@ -276,6 +240,39 @@
                 if (user) {
                     loadShootings(user);
                 }
+            });
+        }
+
+        window.emailAllFiles = async function() {
+            const zip = new JSZip();
+            const folderRef = ref(storage, currentFolderPath);
+            const listRef = await listAll(folderRef);
+
+            const filePromises = listRef.items.map(async (itemRef) => {
+                const url = await getDownloadURL(itemRef);
+                const response = await fetch(url);
+                const blob = await response.blob();
+                zip.file(itemRef.name, blob);
+            });
+
+            await Promise.all(filePromises);
+
+            zip.generateAsync({ type: "base64" }).then(async (base64) => {
+                const link = `data:application/zip;base64,${base64}`;
+                const templateParams = {
+                    user_email: userEmail,
+                    reply_to: "reply@example.com",
+                    link: link
+                };
+                console.log("Template params:", templateParams);
+
+                emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
+                    .then((response) => {
+                        console.log('SUCCESS!', response.status, response.text);
+                    }, (error) => {
+                        console.error('FAILED...', error);
+                        alert('Erreur lors de l\'envoi de l\'email : ' + error.text);
+                    });
             });
         }
     </script>
