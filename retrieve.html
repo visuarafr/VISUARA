@@ -148,6 +148,7 @@
             const userDoc = await getDoc(doc(db, "clients", user.uid));
             if (userDoc.exists()) {
                 userEmail = userDoc.data().email;
+                console.log("User email:", userEmail);
             } else {
                 console.error("No user data found!");
                 alert('No user data found. Please contact support.');
@@ -242,6 +243,7 @@
             reader.readAsDataURL(zipBlob);
             reader.onload = () => {
                 const base64data = reader.result.split(',')[1];
+                console.log("Sending email to:", userEmail);
                 emailjs.send('service_oes8k5b', 'template_6f8cima', {
                     to_email: userEmail,
                     subject: 'Vos fichiers de shooting',
