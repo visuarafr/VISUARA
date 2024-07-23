@@ -292,6 +292,7 @@
             emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
                 .then((response) => {
                     console.log('SUCCESS!', response.status, response.text);
+                    alert('Email envoyé avec succès!');
                 }, (error) => {
                     console.error('FAILED...', error);
                     alert('Erreur lors de l\'envoi de l\'email : ' + error.text);
