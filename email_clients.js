@@ -55,11 +55,10 @@ window.sendEmail = function(clientEmail, clientName) {
     const templateParams = {
         user_email: clientEmail,
         user_name: clientName,
-        reply_to: "reply@example.com",
-        message: "Vos photos sont maintenant disponibles."
+        reply_to: "yannmartial@visuara.fr"
     };
 
-    emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
+    emailjs.send('service_oes8k5b', 'template_vq39i4z', templateParams)
         .then((response) => {
             console.log('SUCCESS!', response.status, response.text);
             alert('Email envoyé avec succès à ' + clientName + '!');
