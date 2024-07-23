@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-import { collection, query, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
 window.logout = function() {
     signOut(auth).then(() => {
@@ -19,51 +19,66 @@ onAuthStateChanged(auth, (user) => {
 });
 
 async function loadClients() {
-    const clientList = document.getElementById('client-list');
-    clientList.innerHTML = ''; // Clear previous content
+    const clientsContainer = document.getElementById('client-list');
+    clientsContainer.innerHTML = ''; // Clear previous content
 
-    const q = query(collection(db, "clients"));
-    const querySnapshot = await getDocs(q);
+    try {
+        const querySnapshot = await getDocs(collection(db, "clients"));
+        if (querySnapshot.empty) {
+            clientsContainer.innerHTML = '<p class="text-center">Aucun client trouvé.</p>';
+            return;
+        }
 
-    querySnapshot.forEach((doc) => {
-        const clientData = doc.data();
-        const clientItem = document.createElement('div');
-        clientItem.classList.add('client-item');
-        clientItem.innerHTML = `
-            <div class="client-name">${clientData.name}</div>
-            <button class="btn btn-primary email-btn" onclick="sendEmail('${clientData.email}', '${clientData.name}')">Envoyer Email</button>
-        `;
-        clientList.appendChild(clientItem);
-    });
+        querySnapshot.forEach((doc) => {
+            const clientData = doc.data();
+            const clientItem = document.createElement('div');
+            clientItem.classList.add('client-item');
 
-    // Add search functionality
-    document.getElementById('search-bar').addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        const clientItems = document.querySelectorAll('.client-item');
-        clientItems.forEach(item => {
-            const clientName = item.querySelector('.client-name').textContent.toLowerCase();
-            if (clientName.includes(searchTerm)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
+            const clientName = document.createElement('div');
+            clientName.classList.add('client-name');
+            clientName.textContent = clientData.name || 'Nom non disponible';
+
+            const emailButton = document.createElement('button');
+            emailButton.classList.add('btn', 'btn-primary', 'email-btn');
+            emailButton.textContent = 'Envoyer Email';
+            emailButton.onclick = () => sendEmail(clientData.email);
+
+            clientItem.appendChild(clientName);
+            clientItem.appendChild(emailButton);
+            clientsContainer.appendChild(clientItem);
         });
-    });
+    } catch (error) {
+        console.error("Error loading clients:", error);
+        clientsContainer.innerHTML = '<p class="text-center">Erreur lors du chargement des clients. Veuillez réessayer plus tard.</p>';
+    }
 }
 
-window.sendEmail = function(clientEmail, clientName) {
+function sendEmail(email) {
     const templateParams = {
-        user_email: clientEmail,
-        user_name: clientName,
-        reply_to: "yannmartial@visuara.fr"
+        user_email: email,
+        reply_to: "yannmartial@visuara.fr",
     };
 
     emailjs.send('service_oes8k5b', 'template_vq39i4z', templateParams)
         .then((response) => {
             console.log('SUCCESS!', response.status, response.text);
-            alert('Email envoyé avec succès à ' + clientName + '!');
+            alert('Email envoyé avec succès à ' + email);
         }, (error) => {
             console.error('FAILED...', error);
-            alert('Erreur lors de l\'envoi de l\'email à ' + clientName + ' : ' + error.text);
+            alert('Erreur lors de l\'envoi de l\'email : ' + error.text);
         });
 }
+
+document.getElementById('search-bar').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const clientItems = document.querySelectorAll('.client-item');
+    
+    clientItems.forEach(item => {
+        const clientName = item.querySelector('.client-name').textContent.toLowerCase();
+        if (clientName.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
