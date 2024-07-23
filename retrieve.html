@@ -167,7 +167,7 @@
             if (listRef.prefixes.length === 0) {
                 photosContainer.innerHTML = '<p class="no-shootings">Aucun dossier trouvé. Veuillez vérifier plus tard.</p>';
             } else {
-                listRef.prefixes.forEach(async (folderRef) => {
+                for (const folderRef of listRef.prefixes) {
                     const folderName = await getFolderName(folderRef.name);
                     const folderDiv = document.createElement('div');
                     folderDiv.classList.add('list-group-item', 'folder');
@@ -177,18 +177,24 @@
                         <div class="folder-title">${folderName}</div>
                     `;
                     photosContainer.appendChild(folderDiv);
-                });
+                }
             }
         }
 
         async function getFolderName(folderId) {
-            const q = query(collection(db, "depot"), where("shootingId", "==", folderId));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const docData = querySnapshot.docs[0].data();
-                return `${docData.shootingType} - ${docData.city} - ${docData.date}`;
+            try {
+                const q = query(collection(db, "depot"), where("shootingId", "==", folderId));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const docData = querySnapshot.docs[0].data();
+                    return `${docData.shootingType} - ${docData.city} - ${docData.date}`;
+                }
+                return folderId; // Fallback to folder ID if no matching document found
+            } catch (error) {
+                console.error("Error getting folder name: ", error);
+                alert("Error retrieving folder name. Please try again later.");
+                return folderId;
             }
-            return folderId; // Fallback to folder ID if no matching document found
         }
 
         window.viewShooting = async function(folderPath) {
@@ -211,7 +217,7 @@
             if (listRef.items.length === 0) {
                 photosContainer.innerHTML = '<p class="no-files">Aucun fichier trouvé dans ce dossier.</p>';
             } else {
-                listRef.items.forEach(async (itemRef) => {
+                for (const itemRef of listRef.items) {
                     const url = await getDownloadURL(itemRef);
                     const mediaElement = document.createElement('div');
                     mediaElement.classList.add('media', 'mb-4');
@@ -223,7 +229,7 @@
                     }
 
                     photosContainer.appendChild(mediaElement);
-                });
+                }
             }
         }
 
