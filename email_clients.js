@@ -36,7 +36,7 @@ async function loadClients() {
 
             const clientName = document.createElement('div');
             clientName.classList.add('client-name');
-            clientName.textContent = clientData.name || 'Nom non disponible';
+            clientName.textContent = clientData.companyName || 'Nom non disponible';
 
             const emailButton = document.createElement('button');
             emailButton.classList.add('btn', 'btn-primary', 'email-btn');
@@ -56,7 +56,7 @@ async function loadClients() {
 function sendEmail(email) {
     const templateParams = {
         user_email: email,
-        reply_to: "yannmartial@visuara.fr",
+        reply_to: "reply@example.com",
     };
 
     emailjs.send('service_oes8k5b', 'template_vq39i4z', templateParams)
