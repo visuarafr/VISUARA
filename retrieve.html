@@ -119,8 +119,8 @@
     <script type="module">
         import { auth, db, storage } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-        import { ref, listAll, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
+        import { doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         let currentPage = 1;
         const itemsPerPage = 5;
@@ -168,10 +168,11 @@
                 photosContainer.innerHTML = '<p class="no-shootings">Aucun dossier trouvé. Veuillez vérifier plus tard.</p>';
             } else {
                 for (const folderRef of listRef.prefixes) {
-                    const folderName = await getFolderName(folderRef.name);
                     const folderDiv = document.createElement('div');
                     folderDiv.classList.add('list-group-item', 'folder');
                     folderDiv.setAttribute('onclick', `viewShooting('${folderRef.fullPath}')`);
+
+                    const folderName = await getFolderName(folderRef.name);
                     folderDiv.innerHTML = `
                         <i class="fas fa-folder folder-icon"></i>
                         <div class="folder-title">${folderName}</div>
@@ -187,13 +188,13 @@
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
                     const docData = querySnapshot.docs[0].data();
-                    return `${docData.shootingType} - ${docData.city} - ${docData.date}`;
+                    return `${docData.date} - ${docData.shootingType} - ${docData.city}`;
+                } else {
+                    return "Unnamed Folder";
                 }
-                return folderId; // Fallback to folder ID if no matching document found
             } catch (error) {
-                console.error("Error getting folder name: ", error);
-                alert("Error retrieving folder name. Please try again later.");
-                return folderId;
+                console.error("Error retrieving folder name:", error);
+                return "Unnamed Folder";
             }
         }
 
@@ -274,17 +275,14 @@
 
             await Promise.all(filePromises);
 
-            zip.generateAsync({ type: "blob" }).then(async (blob) => {
-                const storageRef = ref(storage, `zips/${auth.currentUser.uid}/${new Date().getTime()}.zip`);
-                await uploadBytes(storageRef, blob);
-
-                const downloadURL = await getDownloadURL(storageRef);
-
+            zip.generateAsync({ type: "base64" }).then(async (base64) => {
+                const link = `data:application/zip;base64,${base64}`;
                 const templateParams = {
                     user_email: userEmail,
                     reply_to: "reply@example.com",
-                    link: downloadURL
+                    link: link
                 };
+                console.log("Template params:", templateParams);
 
                 emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
                     .then((response) => {
