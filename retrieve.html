@@ -120,7 +120,7 @@
         import { auth, db, storage } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
         import { doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-        import { ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
+        import { ref, listAll, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         let currentPage = 1;
         const itemsPerPage = 5;
@@ -275,23 +275,27 @@
 
             await Promise.all(filePromises);
 
-            zip.generateAsync({ type: "base64" }).then(async (base64) => {
-                const link = `data:application/zip;base64,${base64}`;
-                const templateParams = {
-                    user_email: userEmail,
-                    reply_to: "reply@example.com",
-                    link: link
-                };
-                console.log("Template params:", templateParams);
+            const zipBlob = await zip.generateAsync({ type: "blob" });
 
-                emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
-                    .then((response) => {
-                        console.log('SUCCESS!', response.status, response.text);
-                    }, (error) => {
-                        console.error('FAILED...', error);
-                        alert('Erreur lors de l\'envoi de l\'email : ' + error.text);
-                    });
-            });
+            const zipFileRef = ref(storage, `zips/${currentFolderPath}.zip`);
+            await uploadBytes(zipFileRef, zipBlob);
+
+            const zipDownloadURL = await getDownloadURL(zipFileRef);
+
+            const templateParams = {
+                user_email: userEmail,
+                reply_to: "reply@example.com",
+                link: zipDownloadURL
+            };
+            console.log("Template params:", templateParams);
+
+            emailjs.send('service_oes8k5b', 'template_6f8cima', templateParams)
+                .then((response) => {
+                    console.log('SUCCESS!', response.status, response.text);
+                }, (error) => {
+                    console.error('FAILED...', error);
+                    alert('Erreur lors de l\'envoi de l\'email : ' + error.text);
+                });
         }
     </script>
 </body>
