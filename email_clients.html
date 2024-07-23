@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envoyer un Email aux Clients</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+        .navbar {
+            background-color: #343a40;
+        }
+        .navbar-brand {
+            color: #ffffff !important;
+        }
+        .logout-btn {
+            color: #ffffff !important;
+            background-color: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .client-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .client-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 5px 0;
+            background-color: #fff;
+            transition: background-color 0.3s ease;
+        }
+        .client-item:hover {
+            background-color: #e2e6ea;
+        }
+        .client-name {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .email-btn {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Photo Shooting Admin</a>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <input type="text" id="search-bar" class="form-control search-bar" placeholder="Rechercher un client">
+        <div id="client-list" class="client-list">
+            <!-- La liste des clients sera affichée ici -->
+        </div>
+    </div>
+    <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function(){
+            emailjs.init("S_JZqwh4VhhkKPGcp");
+        })();
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type="module" src="./email_clients.js"></script>
+</body>
+</html>
