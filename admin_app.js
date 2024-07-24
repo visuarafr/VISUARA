@@ -11,7 +11,7 @@ async function checkAdminPermissions(user) {
         return true;
     } else {
         // Ajout de l'utilisateur en tant qu'admin s'il n'existe pas déjà
-        if (user.email === "yannmartial@visuara.fr") {
+        if (user.email === "yannmartial@visuara.fr";"noe.labigne@visuara.fr") {
             await setDoc(docRef, { email: user.email });
             return true;
         }
