@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: #ffffff; /* Changement de la couleur de fond en blanc */
     margin: 0;
     display: flex;
     justify-content: center;
@@ -12,7 +12,7 @@ body {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: none; /* Suppression des ombres */
     text-align: center;
     max-width: 400px; /* Augmenté pour élargir la carte */
     width: 100%;
